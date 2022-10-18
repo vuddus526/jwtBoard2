@@ -1,11 +1,15 @@
 package com.sparta.jwtboard2.service;
 
 import com.sparta.jwtboard2.dto.requestDto.CommentRequestDto;
+import com.sparta.jwtboard2.dto.requestDto.ReplyRequestDto;
 import com.sparta.jwtboard2.dto.responseDto.CommentResponseDto;
+import com.sparta.jwtboard2.dto.responseDto.ReplyResponseDto;
 import com.sparta.jwtboard2.entity.Comment;
+import com.sparta.jwtboard2.entity.Reply;
 import com.sparta.jwtboard2.entity.User;
 import com.sparta.jwtboard2.repository.CommentRepository;
 import com.sparta.jwtboard2.repository.PostRepository;
+import com.sparta.jwtboard2.repository.ReplyRepositoy;
 import com.sparta.jwtboard2.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -21,6 +25,7 @@ public class CommentService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
+    private final ReplyRepositoy replyRepositoy;
 
     private User getUser(String email) {
         User user = userRepository.findByEmail(email)
@@ -31,6 +36,11 @@ public class CommentService {
     public void postCheck(CommentRequestDto commentRequestDto) {
         postRepository.findById( commentRequestDto.getPostId() )
                 .orElseThrow( () -> new IllegalArgumentException("해당 글이 존재하지 않습니다"));
+    }
+
+    public void commentCheck(Long id) {
+        commentRepository.findById( id )
+                .orElseThrow( () -> new IllegalArgumentException("해당 댓글이 존재하지 않습니다"));
     }
 
     //댓글 쓰기
@@ -95,5 +105,17 @@ public class CommentService {
             clist.add(new CommentResponseDto(c));
         }
         return clist;
+    }
+
+    // 대댓글 추가
+    public ReplyResponseDto createReply(Long id, ReplyRequestDto replyRequestDto, String email) {
+
+        User user = getUser(email);
+        commentCheck(id);
+
+        Reply reply = new Reply(id, replyRequestDto, user);
+        replyRepositoy.save(reply);
+
+        return new ReplyResponseDto(reply);
     }
 }

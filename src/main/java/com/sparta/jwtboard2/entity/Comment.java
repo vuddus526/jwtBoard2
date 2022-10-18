@@ -15,7 +15,7 @@ public class Comment extends Timestamped {
     @Column(name = "comment_id", nullable = false)
     private Long id;        // 댓글 고유 id
 
-    // ManyToOne
+    //@ManyToOne
     @Column (name = "post_Id", nullable = false)
     private Long postId;    // 댓글이 달린 게시글 id
 

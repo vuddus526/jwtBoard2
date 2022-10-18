@@ -1,7 +1,9 @@
 package com.sparta.jwtboard2.controller;
 
 import com.sparta.jwtboard2.dto.requestDto.CommentRequestDto;
+import com.sparta.jwtboard2.dto.requestDto.ReplyRequestDto;
 import com.sparta.jwtboard2.dto.responseDto.CommentResponseDto;
+import com.sparta.jwtboard2.dto.responseDto.ReplyResponseDto;
 import com.sparta.jwtboard2.security.UserDetailsImpl;
 import com.sparta.jwtboard2.service.CommentService;
 import lombok.RequiredArgsConstructor;
@@ -39,5 +41,12 @@ public class CommentController {
     @GetMapping("/comments/{id}")
     public List<CommentResponseDto> getCommentAllOfPost(@PathVariable Long id) {
         return commentService.getCommentAllOfPost(id);
+    }
+
+    // 대댓글
+    @PostMapping("/auth/reply/{id}")
+    public ReplyResponseDto createReply(@PathVariable Long id, @RequestBody ReplyRequestDto replyRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
+
+        return commentService.createReply(id, replyRequestDto, userDetailsImpl.getUser().getEmail());
     }
 }
