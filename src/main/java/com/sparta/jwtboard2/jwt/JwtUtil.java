@@ -4,9 +4,9 @@ import com.sparta.jwtboard2.dto.TokenDto;
 import com.sparta.jwtboard2.entity.RefreshToken;
 import com.sparta.jwtboard2.repository.RefreshTokenRepository;
 import com.sparta.jwtboard2.security.UserDetailsServiceImpl;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SecurityException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -76,10 +76,16 @@ public class JwtUtil {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
-        } catch (Exception ex) {
-            log.error(ex.getMessage());
-            return false;
+        } catch (SecurityException | MalformedJwtException e) {
+            log.info("Invalid JWT signature, 유효하지 않는 JWT 서명 입니다.");
+        } catch (ExpiredJwtException e) {
+            log.info("Expired JWT token, 만료된 JWT token 입니다.");
+        } catch (UnsupportedJwtException e) {
+            log.info("Unsupported JWT token, 지원되지 않는 JWT 토큰 입니다.");
+        } catch (IllegalArgumentException e) {
+            log.info("JWT claims is empty, 잘못된 JWT 토큰 입니다.");
         }
+        return false;
     }
 
     // refreshToken 토큰 검증

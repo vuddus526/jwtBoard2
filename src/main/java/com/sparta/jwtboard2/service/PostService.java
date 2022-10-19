@@ -1,21 +1,16 @@
 package com.sparta.jwtboard2.service;
 
-import com.sparta.jwtboard2.dto.responseDto.PostListResponseDto;
+import com.sparta.jwtboard2.dto.responseDto.CommentResponseDto;
 import com.sparta.jwtboard2.dto.requestDto.PostRequestDto;
 import com.sparta.jwtboard2.dto.responseDto.PostResponseDto;
-import com.sparta.jwtboard2.entity.Comment;
-import com.sparta.jwtboard2.entity.Likes;
-import com.sparta.jwtboard2.entity.Post;
-import com.sparta.jwtboard2.entity.User;
-import com.sparta.jwtboard2.repository.CommentRepository;
-import com.sparta.jwtboard2.repository.LikesRepository;
-import com.sparta.jwtboard2.repository.PostRepository;
-import com.sparta.jwtboard2.repository.UserRepository;
+import com.sparta.jwtboard2.dto.responseDto.ResponseDto;
+import com.sparta.jwtboard2.entity.*;
+import com.sparta.jwtboard2.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -27,6 +22,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final LikesRepository likesRepository;
+    private final ReplyRepositoy replyRepositoy;
 
     // username을 이용해서 User 객체 만들기 및 유저정보 확인 ( user 사용해서)
     private User getUser(String email) {
@@ -37,44 +33,67 @@ public class PostService {
 
     // 글작성
     @Transactional
-    public PostResponseDto createPost(PostRequestDto postRequestDto, String email) {
+    public ResponseDto<?> createPost(PostRequestDto postRequestDto, String email) {
         User user = getUser(email);
 
         Post post = new Post(postRequestDto, user);
         postRepository.save(post);
 
-        return new PostResponseDto(post);
+        return ResponseDto.success(
+                PostResponseDto.builder()
+                        .id(post.getId())
+                        .title(post.getTitle())
+                        .contents(post.getContents())
+                        .email(post.getUser().getEmail())
+                        .createAt(post.getCreateAt())
+                        .modifiedAt(post.getModifiedAt())
+                        .build()
+        );
     }
 
     // 글 전체보기
-    public List<PostListResponseDto> getPostAll() {
-        List<Post> list = postRepository.findAllByOrderByModifiedAtDesc();
-
-        List<PostListResponseDto> plist = new ArrayList<>();
-
-        for(Post post : list) {
-            PostListResponseDto postListResponseDto = PostListResponseDto.builder()
-                    .id(post.getId())
-                    .title(post.getTitle())
-                    .email(post.getUser().getEmail())
-                    .createAt(post.getCreateAt())
-                    .modifiedAt(post.getModifiedAt())
-                    .build();
-            plist.add(postListResponseDto);
-        }
-        return plist;
+    @Transactional(readOnly =true)
+    public ResponseDto<?> getPostAll() {
+         return ResponseDto.success(postRepository.findAllByOrderByModifiedAtDesc());
     }
 
     // 글 상세보기
-    public PostResponseDto getPostDetail(Long id) {
+    public ResponseDto<?> getPostDetail(Long id) {
         Post post = postRepository.findById(id)
                 .orElseThrow( () -> new IllegalArgumentException("해당 글이 존재하지 않습니다"));
-        return new PostResponseDto(post);
+
+        // 해당 글의 댓글 찾기
+        List<Comment> commentList = commentRepository.findAllByPostId(id);
+        List<CommentResponseDto> commentResponseDtoList = new ArrayList<>();
+
+        for(Comment comment : commentList) {
+                commentResponseDtoList.add(
+                        CommentResponseDto.builder()
+                                .id(comment.getId())
+                                .email(comment.getUser().getEmail())
+                                .comment(comment.getComment())
+                                .replyResponseDtoList(replyRepositoy.findAllByCommentId(comment.getId()))
+                                .createAt(comment.getCreateAt())
+                                .modifiedAt(comment.getModifiedAt())
+                                .build()
+                );
+        }
+
+        return ResponseDto.success(
+                PostResponseDto.builder()
+                        .id(post.getId())
+                        .title(post.getTitle())
+                        .contents(post.getContents())
+                        .commentResponseDtoList(commentResponseDtoList)
+                        .createAt(post.getCreateAt())
+                        .modifiedAt(post.getModifiedAt())
+                        .build()
+        );
     }
 
     // 글 수정
     @Transactional
-    public PostResponseDto updatePost(Long id, PostRequestDto postRequestDto, String email) {
+    public ResponseDto<?> updatePost(Long id, PostRequestDto postRequestDto, String email) {
         User user = getUser(email);
         Post post = postRepository.findById(id)
                 .orElseThrow( () -> new IllegalArgumentException ("해당 글이 존재하지 않습니다"));
@@ -85,12 +104,12 @@ public class PostService {
 
         post.update(postRequestDto);
         postRepository.save(post);
-        return new PostResponseDto(post);
+        return ResponseDto.success(post);
     }
 
     // 글 삭제
     @Transactional
-    public String deletePost(Long id, String email) {
+    public ResponseDto<?> deletePost(Long id, String email) {
         User user = getUser(email);
         Post post = postRepository.findById(id)
                 .orElseThrow( () -> new IllegalArgumentException ("해당 글이 존재하지 않습니다"));
@@ -102,7 +121,7 @@ public class PostService {
         for(Comment comment : list) {
             commentRepository.deleteById(comment.getId());
         }
-        return "글이 삭제되었습니다";
+        return ResponseDto.success("delete success");
     }
 
     // 좋아요 추가

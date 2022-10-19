@@ -3,6 +3,7 @@ package com.sparta.jwtboard2.controller;
 import com.sparta.jwtboard2.dto.responseDto.GlobalResDto;
 import com.sparta.jwtboard2.dto.requestDto.LoginRequestDto;
 import com.sparta.jwtboard2.dto.requestDto.UserRequestDto;
+import com.sparta.jwtboard2.dto.responseDto.ResponseDto;
 import com.sparta.jwtboard2.jwt.JwtUtil;
 import com.sparta.jwtboard2.security.UserDetailsImpl;
 import com.sparta.jwtboard2.service.UserService;
@@ -22,12 +23,12 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/user/signup")
-    public GlobalResDto signup(@RequestBody @Valid UserRequestDto userRequestDto) {
+    public ResponseDto<?> signup(@RequestBody @Valid UserRequestDto userRequestDto) {
         return userService.signup(userRequestDto);
     }
 
     @PostMapping("/user/login")
-    public GlobalResDto login(@RequestBody @Valid LoginRequestDto loginRequestDto, HttpServletResponse response) {
+    public ResponseDto<?> login(@RequestBody @Valid LoginRequestDto loginRequestDto, HttpServletResponse response) {
         return userService.login(loginRequestDto, response);
     }
 

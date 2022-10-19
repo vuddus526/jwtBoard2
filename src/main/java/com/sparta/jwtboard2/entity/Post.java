@@ -25,10 +25,6 @@ public class Post extends Timestamped {
     @JoinColumn(name = "user_id")
     private User user;
 
-//    @OneToMany
-//    @JoinColumn(name = "comment_id")
-//    private Comment comment;
-
     public Post(Long id) {
         this.id = id;
     }

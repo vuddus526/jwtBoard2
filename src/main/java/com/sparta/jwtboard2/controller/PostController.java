@@ -3,6 +3,7 @@ package com.sparta.jwtboard2.controller;
 import com.sparta.jwtboard2.dto.responseDto.PostListResponseDto;
 import com.sparta.jwtboard2.dto.requestDto.PostRequestDto;
 import com.sparta.jwtboard2.dto.responseDto.PostResponseDto;
+import com.sparta.jwtboard2.dto.responseDto.ResponseDto;
 import com.sparta.jwtboard2.security.UserDetailsImpl;
 import com.sparta.jwtboard2.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class PostController {
 
     // 글 작성
     @PostMapping("/auth/posts")
-    public PostResponseDto createPost(@RequestBody PostRequestDto postRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
+    public ResponseDto<?> createPost(@RequestBody PostRequestDto postRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
         System.out.println(postRequestDto.getTitle());
         System.out.println(postRequestDto.getContents());
         return postService.createPost(postRequestDto, userDetailsImpl.getUser().getEmail());
@@ -27,25 +28,25 @@ public class PostController {
 
     // 글 전체보기
     @GetMapping("/posts")
-    public List<PostListResponseDto> getPostAll() {
+    public ResponseDto<?> getPostAll() {
         return postService.getPostAll();
     }
 
     // 글 상세보기
     @GetMapping("/posts/{id}")
-    public PostResponseDto getPostDetail(@PathVariable Long id) {
+    public ResponseDto<?> getPostDetail(@PathVariable Long id) {
         return postService.getPostDetail(id);
     }
 
     // 글 수정
     @PostMapping("/auth/posts/{id}")
-    public PostResponseDto updataPost(@PathVariable Long id, @RequestBody PostRequestDto postRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
+    public ResponseDto<?> updataPost(@PathVariable Long id, @RequestBody PostRequestDto postRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
         return postService.updatePost(id, postRequestDto, userDetailsImpl.getUser().getEmail());
     }
 
     // 글 삭제
     @DeleteMapping("/auth/posts/{id}")
-    public String deletePost(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
+    public ResponseDto<?> deletePost(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
         return postService.deletePost(id, userDetailsImpl.getUser().getEmail());
     }
 

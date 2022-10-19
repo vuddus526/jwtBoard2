@@ -1,16 +1,16 @@
 package com.sparta.jwtboard2.service;
 
-import com.sparta.jwtboard2.dto.responseDto.GlobalResDto;
 import com.sparta.jwtboard2.dto.requestDto.LoginRequestDto;
 import com.sparta.jwtboard2.dto.TokenDto;
 import com.sparta.jwtboard2.dto.requestDto.UserRequestDto;
+import com.sparta.jwtboard2.dto.responseDto.ResponseDto;
+import com.sparta.jwtboard2.dto.responseDto.UserResponseDto;
 import com.sparta.jwtboard2.entity.RefreshToken;
 import com.sparta.jwtboard2.entity.User;
 import com.sparta.jwtboard2.jwt.JwtUtil;
 import com.sparta.jwtboard2.repository.RefreshTokenRepository;
 import com.sparta.jwtboard2.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +27,7 @@ public class UserService {
     private final RefreshTokenRepository refreshTokenRepository;
 
     @Transactional
-    public GlobalResDto signup(UserRequestDto userRequestDto) {
+    public ResponseDto<?> signup(UserRequestDto userRequestDto) {
         // email 중복 검사
         if(userRepository.findByEmail(userRequestDto.getEmail()).isPresent()){
             throw new RuntimeException("Overlap Check");
@@ -40,14 +40,22 @@ public class UserService {
 
         // DB에 객체 저장
         userRepository.save(user);
-        return new GlobalResDto("Success signup", HttpStatus.OK.value());
+        return ResponseDto.success(
+                UserResponseDto.builder()
+                        .id(user.getId())
+                        .name(user.getName())
+                        .email(user.getEmail())
+                        .createdAt(user.getCreateAt())
+                        .modifiedAt(user.getModifiedAt())
+                        .build()
+        );
     }
 
     @Transactional
-    public GlobalResDto login(LoginRequestDto loginRequestDto, HttpServletResponse response) {
+    public ResponseDto<?> login(LoginRequestDto loginRequestDto, HttpServletResponse response) {
         // 아이디(이메일) 있는지 확인
         User user = userRepository.findByEmail(loginRequestDto.getEmail()).orElseThrow(
-                () -> new RuntimeException("Not found Account")
+                () -> new RuntimeException("Not found User")
         );
         // 비밀번호 있는지 확인
         if(!passwordEncoder.matches(loginRequestDto.getPassword(), user.getPassword())) {
@@ -74,8 +82,15 @@ public class UserService {
         // tokenDto == 생성된 엑세스, 리프레쉬 담기
         setHeader(response, tokenDto);
 
-        return new GlobalResDto("Success Login", HttpStatus.OK.value());
-
+        return ResponseDto.success(
+                UserResponseDto.builder()
+                        .id(user.getId())
+                        .name(user.getName())
+                        .email(user.getEmail())
+                        .createdAt(user.getCreateAt())
+                        .modifiedAt(user.getModifiedAt())
+                        .build()
+        );
     }
 
     // response에 담는 메서드

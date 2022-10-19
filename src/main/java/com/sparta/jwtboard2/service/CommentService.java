@@ -4,6 +4,7 @@ import com.sparta.jwtboard2.dto.requestDto.CommentRequestDto;
 import com.sparta.jwtboard2.dto.requestDto.ReplyRequestDto;
 import com.sparta.jwtboard2.dto.responseDto.CommentResponseDto;
 import com.sparta.jwtboard2.dto.responseDto.ReplyResponseDto;
+import com.sparta.jwtboard2.dto.responseDto.ResponseDto;
 import com.sparta.jwtboard2.entity.Comment;
 import com.sparta.jwtboard2.entity.Reply;
 import com.sparta.jwtboard2.entity.User;
@@ -14,8 +15,8 @@ import com.sparta.jwtboard2.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,26 +46,27 @@ public class CommentService {
 
     //댓글 쓰기
     @Transactional
-    public CommentResponseDto createComment(CommentRequestDto commentRequestDto, String email) {
+    public ResponseDto<?> createComment(CommentRequestDto commentRequestDto, String email) {
         User user = getUser(email);
         postCheck(commentRequestDto);
 
         Comment comment = new Comment(commentRequestDto, user);
         commentRepository.save(comment);
 
-        return new CommentResponseDto(comment);
-//        return CommentResponseDto.builder()
-//                .id(comment.getId())
-//                .author(username)
-//                .comment(comment.getComment())
-//                .createAt(comment.getCreateAt())
-//                .modifiedAt(comment.getModifiedAt())
-//                .build();
+        return ResponseDto.success(
+                CommentResponseDto.builder()
+                        .id(comment.getId())
+                        .email(comment.getUser().getEmail())
+                        .comment(comment.getComment())
+                        .createAt(comment.getCreateAt())
+                        .modifiedAt(comment.getModifiedAt())
+                        .build()
+        );
     }
 
     //댓글 수정
     @Transactional
-    public CommentResponseDto updateComment(Long id, CommentRequestDto commentRequestDto, String email) {
+    public ResponseDto<?> updateComment(Long id, CommentRequestDto commentRequestDto, String email) {
         User user = getUser(email);
         postCheck(commentRequestDto);
 
@@ -77,12 +79,20 @@ public class CommentService {
 
         comment.update(commentRequestDto);
         commentRepository.save(comment);
-        return new CommentResponseDto(comment);
+        return ResponseDto.success(
+                CommentResponseDto.builder()
+                        .id(comment.getId())
+                        .email(comment.getUser().getEmail())
+                        .comment(comment.getComment())
+                        .createAt(comment.getCreateAt())
+                        .modifiedAt(comment.getModifiedAt())
+                        .build()
+        );
     }
 
     //댓글 삭제
     @Transactional
-    public String deleteComment(Long id, String email) {
+    public ResponseDto<?> deleteComment(Long id, String email) {
         User user = getUser(email);
 
         Comment comment = commentRepository.findById(id)
@@ -93,22 +103,30 @@ public class CommentService {
         }
 
         commentRepository.deleteById(id);
-        return "댓글이 삭제되었습니다";
+        return ResponseDto.success("success");
     }
 
     //댓글 전체목록 보기
-    public List<CommentResponseDto> getCommentAllOfPost(Long id) {
-        List<Comment> list = commentRepository.findAllByPostId(id);
-        List<CommentResponseDto> clist = new ArrayList<>();
-        for (Comment c : list) {
-            //CommentResponseDto commentResponseDto = new CommentResponseDto(c);
-            clist.add(new CommentResponseDto(c));
+    @Transactional(readOnly =true)
+    public ResponseDto<?> getCommentAllOfPost(Long id) {
+        List<Comment> commentList = commentRepository.findAllByPostId(id);
+        List<CommentResponseDto> commentResponseDtoList = new ArrayList<>();
+        for (Comment comment : commentList) {
+            commentResponseDtoList.add(
+                    CommentResponseDto.builder()
+                            .id(comment.getId())
+                            .email(comment.getUser().getEmail())
+                            .comment(comment.getComment())
+                            .createAt(comment.getCreateAt())
+                            .modifiedAt(comment.getModifiedAt())
+                            .build()
+            );
         }
-        return clist;
+        return ResponseDto.success(commentResponseDtoList);
     }
 
     // 대댓글 추가
-    public ReplyResponseDto createReply(Long id, ReplyRequestDto replyRequestDto, String email) {
+    public ResponseDto<?> createReply(Long id, ReplyRequestDto replyRequestDto, String email) {
 
         User user = getUser(email);
         commentCheck(id);
@@ -116,6 +134,14 @@ public class CommentService {
         Reply reply = new Reply(id, replyRequestDto, user);
         replyRepositoy.save(reply);
 
-        return new ReplyResponseDto(reply);
+        return ResponseDto.success(
+                ReplyResponseDto.builder()
+                        .id(reply.getId())
+                        .email(reply.getUser().getEmail())
+                        .reply(reply.getReply())
+                        .createAt(reply.getCreateAt())
+                        .modifiedAt(reply.getModifiedAt())
+                        .build()
+        );
     }
 }
