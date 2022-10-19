@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
@@ -30,6 +31,11 @@ public class UserController {
     @PostMapping("/user/login")
     public ResponseDto<?> login(@RequestBody @Valid LoginRequestDto loginRequestDto, HttpServletResponse response) {
         return userService.login(loginRequestDto, response);
+    }
+
+    @GetMapping("/user/mypage")
+    public ResponseDto<?> mypage(HttpServletResponse response) {
+        return userService.mypage(response);
     }
 
     @GetMapping("/issue/token")

@@ -7,6 +7,8 @@ import com.sparta.jwtboard2.dto.responseDto.ResponseDto;
 import com.sparta.jwtboard2.dto.responseDto.UserResponseDto;
 import com.sparta.jwtboard2.entity.RefreshToken;
 import com.sparta.jwtboard2.entity.User;
+import com.sparta.jwtboard2.exception.UserEmailAlreadyException;
+import com.sparta.jwtboard2.exception.UserNotFoundException;
 import com.sparta.jwtboard2.jwt.JwtUtil;
 import com.sparta.jwtboard2.repository.RefreshTokenRepository;
 import com.sparta.jwtboard2.repository.UserRepository;
@@ -14,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import javax.servlet.http.HttpServletResponse;
 import java.util.Optional;
 
@@ -30,7 +31,7 @@ public class UserService {
     public ResponseDto<?> signup(UserRequestDto userRequestDto) {
         // email 중복 검사
         if(userRepository.findByEmail(userRequestDto.getEmail()).isPresent()){
-            throw new RuntimeException("Overlap Check");
+            throw new UserEmailAlreadyException();
         }
         // 패스워드 암호화로 만들기
         userRequestDto.setEncodePwd(passwordEncoder.encode(userRequestDto.getPassword()));
@@ -55,11 +56,11 @@ public class UserService {
     public ResponseDto<?> login(LoginRequestDto loginRequestDto, HttpServletResponse response) {
         // 아이디(이메일) 있는지 확인
         User user = userRepository.findByEmail(loginRequestDto.getEmail()).orElseThrow(
-                () -> new RuntimeException("Not found User")
+                () -> new UserNotFoundException()
         );
         // 비밀번호 있는지 확인
         if(!passwordEncoder.matches(loginRequestDto.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Not matches Password");
+            throw new UserNotFoundException();
         }
 
         // 엑세스토큰, 리프레쉬토큰 생성
@@ -91,6 +92,12 @@ public class UserService {
                         .modifiedAt(user.getModifiedAt())
                         .build()
         );
+    }
+
+    // 마이페이지
+    public ResponseDto<?> mypage(HttpServletResponse response) {
+        System.out.println("뭐가 찍힐까 ? : " + response);
+        return ResponseDto.success(response);
     }
 
     // response에 담는 메서드
