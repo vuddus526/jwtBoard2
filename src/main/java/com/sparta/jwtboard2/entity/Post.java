@@ -3,6 +3,8 @@ package com.sparta.jwtboard2.entity;
 import com.sparta.jwtboard2.dto.requestDto.PostRequestDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 
@@ -21,8 +23,9 @@ public class Post extends Timestamped {
     @Column(name = "contents", nullable = false)
     private String contents;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
     public Post(Long id) {

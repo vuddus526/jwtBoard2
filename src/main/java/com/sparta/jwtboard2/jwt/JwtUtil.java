@@ -1,6 +1,7 @@
 package com.sparta.jwtboard2.jwt;
 
 import com.sparta.jwtboard2.dto.TokenDto;
+import com.sparta.jwtboard2.entity.Authority;
 import com.sparta.jwtboard2.entity.RefreshToken;
 import com.sparta.jwtboard2.repository.RefreshTokenRepository;
 import com.sparta.jwtboard2.security.UserDetailsServiceImpl;
@@ -29,6 +30,7 @@ public class JwtUtil {
     private final UserDetailsServiceImpl userDetailsService;
     private final RefreshTokenRepository refreshTokenRepository;
 
+    //private static final String AUTHORITIES_KEY = "auth";
     public static final String ACCESS_TOKEN = "Access_Token";
     public static final String REFRESH_TOKEN = "Refresh_Token";
     private static final long ACCESS_TIME = 1000 * 1000L;
@@ -64,6 +66,7 @@ public class JwtUtil {
 
         return Jwts.builder()
                 .setSubject(email)
+                //.claim(AUTHORITIES_KEY, Authority.ROLE_USER.toString())
                 .setExpiration(new Date(date.getTime() + time))
                 .setIssuedAt(date)
                 .signWith(key, signatureAlgorithm)

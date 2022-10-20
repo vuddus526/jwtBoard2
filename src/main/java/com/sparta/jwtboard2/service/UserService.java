@@ -5,18 +5,17 @@ import com.sparta.jwtboard2.dto.TokenDto;
 import com.sparta.jwtboard2.dto.requestDto.UserRequestDto;
 import com.sparta.jwtboard2.dto.responseDto.ResponseDto;
 import com.sparta.jwtboard2.dto.responseDto.UserResponseDto;
-import com.sparta.jwtboard2.entity.RefreshToken;
-import com.sparta.jwtboard2.entity.User;
+import com.sparta.jwtboard2.entity.*;
 import com.sparta.jwtboard2.exception.UserEmailAlreadyException;
 import com.sparta.jwtboard2.exception.UserNotFoundException;
 import com.sparta.jwtboard2.jwt.JwtUtil;
-import com.sparta.jwtboard2.repository.RefreshTokenRepository;
-import com.sparta.jwtboard2.repository.UserRepository;
+import com.sparta.jwtboard2.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -26,6 +25,10 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
+    private final LikesRepository likesRepository;
+
 
     @Transactional
     public ResponseDto<?> signup(UserRequestDto userRequestDto) {
@@ -95,10 +98,13 @@ public class UserService {
     }
 
     // 마이페이지
-    public ResponseDto<?> mypage(HttpServletResponse response) {
-        System.out.println("뭐가 찍힐까 ? : " + response);
-        return ResponseDto.success(response);
-    }
+//    public ResponseDto<?> mypage(String email) {
+//        List<Post> posts = postRepository.findByUserEmail(email);
+//        List<Comment> comments = commentRepository.findByUserEmail(email);
+//        List<Likes> likes = likesRepository.findAllByUserEmail(email);
+//        likes.get(1).getPost();
+//        return ResponseDto.success(response)
+//    }
 
     // response에 담는 메서드
     private void setHeader(HttpServletResponse response, TokenDto tokenDto) {

@@ -8,12 +8,15 @@ import com.sparta.jwtboard2.dto.responseDto.ResponseDto;
 import com.sparta.jwtboard2.entity.Comment;
 import com.sparta.jwtboard2.entity.Reply;
 import com.sparta.jwtboard2.entity.User;
+import com.sparta.jwtboard2.exception.CommentNotFoundException;
+import com.sparta.jwtboard2.exception.PostNotFoundException;
+import com.sparta.jwtboard2.exception.UserNotEqualsException;
+import com.sparta.jwtboard2.exception.UserNotFoundException;
 import com.sparta.jwtboard2.repository.CommentRepository;
 import com.sparta.jwtboard2.repository.PostRepository;
 import com.sparta.jwtboard2.repository.ReplyRepositoy;
 import com.sparta.jwtboard2.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,18 +33,18 @@ public class CommentService {
 
     private User getUser(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow( () -> new UsernameNotFoundException("유저를 찾을 수 없습니다"));
+                .orElseThrow( () -> new UserNotFoundException());
         return user;
     }
 
     public void postCheck(CommentRequestDto commentRequestDto) {
         postRepository.findById( commentRequestDto.getPostId() )
-                .orElseThrow( () -> new IllegalArgumentException("해당 글이 존재하지 않습니다"));
+                .orElseThrow( () -> new PostNotFoundException());
     }
 
     public void commentCheck(Long id) {
         commentRepository.findById( id )
-                .orElseThrow( () -> new IllegalArgumentException("해당 댓글이 존재하지 않습니다"));
+                .orElseThrow( () -> new CommentNotFoundException());
     }
 
     //댓글 쓰기
@@ -71,10 +74,10 @@ public class CommentService {
         postCheck(commentRequestDto);
 
         Comment comment = commentRepository.findById(id)
-                .orElseThrow( () -> new IllegalArgumentException("찾으시는 댓글이 없습니다"));
+                .orElseThrow( () -> new CommentNotFoundException());
 
         if(!user.getEmail().equals(comment.getUser().getEmail())){
-            throw new IllegalArgumentException("댓글 작성자가 다릅니다");
+            throw new UserNotEqualsException();
         }
 
         comment.update(commentRequestDto);
@@ -96,10 +99,10 @@ public class CommentService {
         User user = getUser(email);
 
         Comment comment = commentRepository.findById(id)
-                .orElseThrow( () -> new IllegalArgumentException("찾으시는 댓글이 없습니다"));
+                .orElseThrow( () -> new CommentNotFoundException());
 
         if(!user.getEmail().equals(comment.getUser().getEmail())){
-            throw new IllegalArgumentException("댓글 작성자가 다릅니다");
+            throw new UserNotEqualsException();
         }
 
         commentRepository.deleteById(id);

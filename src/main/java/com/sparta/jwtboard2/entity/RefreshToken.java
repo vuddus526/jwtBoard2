@@ -3,22 +3,22 @@ package com.sparta.jwtboard2.entity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 
 @Getter
 @Entity
 @NoArgsConstructor
 public class RefreshToken {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NotBlank
+
+    @Column(name = "refreshToken", nullable = false)
     private String refreshToken;
-    @NotBlank
+
+    @Column(name = "userEmail", nullable = false)
     private String userEmail;
 
     public RefreshToken(String token, String email) {
