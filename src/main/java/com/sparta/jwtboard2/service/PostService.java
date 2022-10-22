@@ -1,19 +1,26 @@
 package com.sparta.jwtboard2.service;
 
-import com.sparta.jwtboard2.dto.responseDto.CommentResponseDto;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.util.IOUtils;
+import com.sparta.jwtboard2.s3.CommonUtils;
+import com.sparta.jwtboard2.dto.responseDto.*;
 import com.sparta.jwtboard2.dto.requestDto.PostRequestDto;
-import com.sparta.jwtboard2.dto.responseDto.PostResponseDto;
-import com.sparta.jwtboard2.dto.responseDto.ResponseDto;
 import com.sparta.jwtboard2.entity.*;
 import com.sparta.jwtboard2.exception.PostNotFoundException;
 import com.sparta.jwtboard2.exception.UserNotEqualsException;
 import com.sparta.jwtboard2.exception.UserNotFoundException;
 import com.sparta.jwtboard2.repository.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +33,12 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final LikesRepository likesRepository;
     private final ReplyRepositoy replyRepositoy;
+    private final ImgRepository imgRepository;
+
+    private final AmazonS3Client amazonS3Client;
+
+    @Value("${cloud.aws.s3.bucket}")
+    private String bucketName;
 
     // username을 이용해서 User 객체 만들기 및 유저정보 확인 ( user 사용해서)
     private User getUser(String email) {
@@ -36,11 +49,36 @@ public class PostService {
 
     // 글작성
     @Transactional
-    public ResponseDto<?> createPost(PostRequestDto postRequestDto, String email) {
+    public ResponseDto<?> createPost(List<MultipartFile> multipartFile, PostRequestDto postRequestDto, String email) throws IOException {
+        // 넘어온 multipartFile이 있는지 확인하고 img 객체에 담고 저장하기
+        // 저장할때 imgurl 이랑 postId 같이 저장하기
+        // 그러려면 Img 객체에 Post를 ManyToOne 해두어야함
+        // 그런 다음 상세보기에서 ImgRepository.findByPostId
         User user = getUser(email);
-
         Post post = new Post(postRequestDto, user);
         postRepository.save(post);
+
+        String imgUrl = "";
+
+        for (MultipartFile file : multipartFile) {
+            if(!file.isEmpty()) {
+                String fileName = CommonUtils.buildFileName(file.getOriginalFilename());
+                ObjectMetadata objectMetadata = new ObjectMetadata();
+                objectMetadata.setContentType(file.getContentType());
+
+                byte[] bytes = IOUtils.toByteArray(file.getInputStream());
+                objectMetadata.setContentLength(bytes.length);
+                ByteArrayInputStream byteArrayIs = new ByteArrayInputStream(bytes);
+
+                amazonS3Client.putObject(new PutObjectRequest(bucketName, fileName, byteArrayIs, objectMetadata)
+                        .withCannedAcl(CannedAccessControlList.PublicRead));
+                imgUrl = amazonS3Client.getUrl(bucketName, fileName).toString();
+
+                Img img = new Img(imgUrl, post);
+
+                imgRepository.save(img);
+            }
+        }
 
         return ResponseDto.success(
                 PostResponseDto.builder()
@@ -69,6 +107,17 @@ public class PostService {
         List<Comment> commentList = commentRepository.findAllByPostId(id);
         List<CommentResponseDto> commentResponseDtoList = new ArrayList<>();
 
+        // 해당 글의 이미지 찾기
+        List<Img> imgList = imgRepository.findAllByPostId(id);
+        List<ImgResponseDto> imgResponseDtoList = new ArrayList<>();
+        for(Img img : imgList) {
+            imgResponseDtoList.add(
+                    ImgResponseDto.builder()
+                            .url(img.getUrl())
+                            .build()
+            );
+        }
+
         for(Comment comment : commentList) {
                 commentResponseDtoList.add(
                         CommentResponseDto.builder()
@@ -88,6 +137,8 @@ public class PostService {
                         .title(post.getTitle())
                         .contents(post.getContents())
                         .commentResponseDtoList(commentResponseDtoList)
+                        .imgResponseDtoList(imgResponseDtoList)
+                        .email(post.getUser().getEmail())
                         .createAt(post.getCreateAt())
                         .modifiedAt(post.getModifiedAt())
                         .build()

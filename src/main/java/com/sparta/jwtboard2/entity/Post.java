@@ -1,5 +1,6 @@
 package com.sparta.jwtboard2.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sparta.jwtboard2.dto.requestDto.PostRequestDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,7 @@ public class Post extends Timestamped {
     @Column(name = "contents", nullable = false)
     private String contents;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @OnDelete(action = OnDeleteAction.CASCADE)

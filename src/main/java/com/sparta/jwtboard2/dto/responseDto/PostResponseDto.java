@@ -1,5 +1,6 @@
 package com.sparta.jwtboard2.dto.responseDto;
 
+import com.sparta.jwtboard2.entity.Img;
 import com.sparta.jwtboard2.entity.Post;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -27,6 +28,8 @@ public class PostResponseDto {
 
     @ApiModelProperty(example = "댓글 목록")
     private List<CommentResponseDto> commentResponseDtoList;
+
+    private List<ImgResponseDto> imgResponseDtoList;
 
     @ApiModelProperty(example = "유저 이메일")
     private String email;

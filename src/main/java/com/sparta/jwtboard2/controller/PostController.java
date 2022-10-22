@@ -8,7 +8,9 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -20,8 +22,10 @@ public class PostController {
     // 글 작성
     @PostMapping("/auth/posts")
     @ApiOperation(value = "글 작성", notes = "글 작성 API")
-    public ResponseDto<?> createPost(@RequestBody PostRequestDto postRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
-        return postService.createPost(postRequestDto, userDetailsImpl.getUser().getEmail());
+    public ResponseDto<?> createPost(@RequestPart(required = false,value = "file") List<MultipartFile> multipartFile,
+                                     @RequestPart(value = "postRequestDto") PostRequestDto postRequestDto,
+                                     @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) throws IOException {
+        return postService.createPost(multipartFile, postRequestDto, userDetailsImpl.getUser().getEmail());
     }
 
     // 글 전체보기
@@ -41,7 +45,7 @@ public class PostController {
     // 글 수정
     @PostMapping("/auth/posts/{id}")
     @ApiOperation(value = "글 수정", notes = "글 수정하기 API")
-    public ResponseDto<?> updataPost(@PathVariable Long id, @RequestBody PostRequestDto postRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
+    public ResponseDto<?> updatePost(@PathVariable Long id, @RequestBody PostRequestDto postRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
         return postService.updatePost(id, postRequestDto, userDetailsImpl.getUser().getEmail());
     }
 
