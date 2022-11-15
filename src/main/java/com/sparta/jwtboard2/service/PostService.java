@@ -48,7 +48,6 @@ public class PostService {
     }
 
     // 글작성
-    @Transactional
     public ResponseDto<?> createPost(List<MultipartFile> multipartFile, PostRequestDto postRequestDto, String email) throws IOException {
         // 넘어온 multipartFile이 있는지 확인하고 img 객체에 담고 저장하기
         // 저장할때 imgurl 이랑 postId 같이 저장하기
@@ -196,5 +195,14 @@ public class PostService {
             likesRepository.save(like);
         }
             return true;
+    }
+
+    // 키워드 검색기능
+    @Transactional
+    public ResponseDto<?> searchKeyword(String keyword) {
+
+        List<Post> posts = postRepository.findByKeyword(keyword);
+
+        return ResponseDto.success("posts");
     }
 }

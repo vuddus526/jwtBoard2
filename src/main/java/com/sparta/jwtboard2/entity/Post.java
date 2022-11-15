@@ -2,6 +2,7 @@ package com.sparta.jwtboard2.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sparta.jwtboard2.dto.requestDto.PostRequestDto;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.OnDelete;

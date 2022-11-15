@@ -1,5 +1,6 @@
 package com.sparta.jwtboard2.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sparta.jwtboard2.dto.responseDto.GlobalResDto;
 import com.sparta.jwtboard2.dto.requestDto.LoginRequestDto;
 import com.sparta.jwtboard2.dto.requestDto.UserRequestDto;

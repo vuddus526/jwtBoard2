@@ -10,6 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.awt.print.Pageable;
 import java.io.IOException;
 import java.util.List;
 
@@ -61,5 +62,11 @@ public class PostController {
     @ApiOperation(value = "좋아요 기능", notes = "좋아요 기능 API")
     public boolean likeUp(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl){
         return postService.likeUp(id, userDetailsImpl.getUser().getEmail());
+    }
+
+    // 키워드 검색기능
+    @GetMapping("/posts/search")
+    public ResponseDto<?> searchKeyword(@RequestParam String keyword) {
+        return postService.searchKeyword(keyword);
     }
 }

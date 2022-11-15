@@ -36,6 +36,8 @@ public class JwtUtil {
     private static final long ACCESS_TIME = 1000 * 1000L;
     private static final long REFRESH_TIME = 6000 * 1000L;
 
+    public static final String BEARER_TYPE = "Bearer ";
+
 
     @Value("${jwt.secret}")
     private String secretKey;
@@ -64,7 +66,7 @@ public class JwtUtil {
 
         long time = type.equals("Access") ? ACCESS_TIME : REFRESH_TIME;
 
-        return Jwts.builder()
+        return BEARER_TYPE + Jwts.builder()
                 .setSubject(email)
                 //.claim(AUTHORITIES_KEY, Authority.ROLE_USER.toString())
                 .setExpiration(new Date(date.getTime() + time))
