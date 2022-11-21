@@ -30,7 +30,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
 			// contains == 앞뒤 구분없이, 1개의 문자만 똑같아도 포함된 것으로 간주하는 메서드
 			.where(post.contents.contains(keyword))
 			// orderBy == 이 기준으로 정렬하겠다
-			.orderBy(post.modifiedAt.desc())
+			// .orderBy(post.modifiedAt.desc())
 			// fetch == 기존에 조인된 것을 다시 해제하는 역할 + querydsl 값을 반환해주는 역할
 			.fetch();
 

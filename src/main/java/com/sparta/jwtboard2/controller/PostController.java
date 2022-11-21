@@ -29,6 +29,12 @@ public class PostController {
         return postService.createPost(multipartFile, postRequestDto, userDetailsImpl.getUser().getEmail());
     }
 
+    // 테스트 글 작성
+    @PostMapping("/auth/testPosts")
+    public ResponseDto<?> testPost(@RequestBody PostRequestDto postRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
+        return postService.testPost(postRequestDto, userDetailsImpl.getUser().getEmail());
+    }
+
     // 글 전체보기
     @GetMapping("/posts")
     @ApiOperation(value = "글 전체보기", notes = "글 전체보기 API")

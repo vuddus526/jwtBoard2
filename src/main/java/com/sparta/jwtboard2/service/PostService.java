@@ -15,6 +15,7 @@ import com.sparta.jwtboard2.exception.UserNotFoundException;
 import com.sparta.jwtboard2.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -92,12 +93,14 @@ public class PostService {
     }
 
     // 글 전체보기
+
     @Transactional(readOnly =true)
     public ResponseDto<?> getPostAll() {
          return ResponseDto.success(postRepository.findAllByOrderByModifiedAtDesc());
     }
 
     // 글 상세보기
+    @Cacheable(value = "Post", key = "#id", cacheManager = "cacheManager")
     public ResponseDto<?> getPostDetail(Long id) {
         Post post = postRepository.findById(id)
                 .orElseThrow( () -> new PostNotFoundException());
@@ -204,5 +207,13 @@ public class PostService {
         List<Post> posts = postRepository.findByKeyword(keyword);
 
         return ResponseDto.success("posts");
+    }
+
+    // 테스트 글작성
+    public ResponseDto<?> testPost(PostRequestDto postRequestDto, String email) {
+        User user = getUser(email);
+        Post post = new Post(postRequestDto, user);
+        postRepository.save(post);
+        return ResponseDto.success("글작성 성공");
     }
 }

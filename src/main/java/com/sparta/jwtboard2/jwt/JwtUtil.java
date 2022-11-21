@@ -66,7 +66,7 @@ public class JwtUtil {
 
         long time = type.equals("Access") ? ACCESS_TIME : REFRESH_TIME;
 
-        return BEARER_TYPE + Jwts.builder()
+        return Jwts.builder()
                 .setSubject(email)
                 //.claim(AUTHORITIES_KEY, Authority.ROLE_USER.toString())
                 .setExpiration(new Date(date.getTime() + time))

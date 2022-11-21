@@ -16,7 +16,7 @@ import javax.persistence.*;
 public class Post extends Timestamped {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    @Column(name = "post_id", nullable = false)
+    // @Column(name = "post_id", nullable = false)
     private Long id;
 
     @Column(name = "title", nullable = false)
